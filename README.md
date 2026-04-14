@@ -2,9 +2,10 @@
 
 A unified workspace for traffic co-simulation research using SUMO and Unity.
 
-This repository includes two complementary simulators:
+This repository includes three complementary simulators:
 - Car-Bike-Cycle simulator for mixed vehicle traffic synchronization and performance analytics.
 - Pedestrian simulator for externally modeled pedestrian dynamics mirrored in SUMO.
+- Pedestrian-VR simulator for immersive pedestrian and traffic safety studies in VR.
 
 ## Workspace Components
 
@@ -12,6 +13,7 @@ This repository includes two complementary simulators:
 |---|---|---|
 | Car-Bike-Cycle simulator | ./Car-Bike-Cycle-simulator | Vehicle-centric co-simulation, road import, runtime synchronization, metrics export |
 | Pedestrian simulator | ./Pedestrian-simulator | Pedestrian behavior modeling in Unity with SUMO state synchronization |
+| Pedestrian-VR simulator | ./Pedestrian-VR-simulator | VR-based pedestrian co-simulation and headset-oriented runtime setup |
 
 ## System Architecture
 
@@ -44,6 +46,8 @@ flowchart TD
 - Project READMEs:
 	- ./Car-Bike-Cycle-simulator/README.md
 	- ./Pedestrian-simulator/README.md
+	- ./Pedestrian-VR-simulator/README.md
+	- ./Pedestrian-VR-simulator/README_VR_SETUP.md
 
 ## Practical Notes
 
