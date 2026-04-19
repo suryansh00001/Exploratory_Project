@@ -8,9 +8,9 @@ public class SubjectController : MonoBehaviour
     private const string EgoPedestrianId = "ego_ped";
 
     [Header("Keyboard fallback (non-VR)")]
-    public float moveSpeed = 2.5f;
+    public float moveSpeed = 1.6f;
     public float turnSpeed = 120f;
-    public float eyeHeight = 1.55f;
+    public float eyeHeight = 1f;
     public string controlledPedestrianId = EgoPedestrianId;
 
     [Header("Interaction")]
