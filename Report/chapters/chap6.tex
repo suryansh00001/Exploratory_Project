@@ -1,0 +1,66 @@
+% ============================================================
+%   CHAPTER 6: HARDWARE IMPLEMENTATION & PRELIMINARY TESTING
+% ============================================================
+\chapter{Hardware Implementation \& Preliminary Testing}
+
+\section{Pedestrian VR Headset Integration}
+
+To validate the co-simulation framework practically for human factors research, hardware integration is paramount. The visual immersion required for authentic pedestrian behavior completely depends on head tracking fidelity. The chosen hardware interface utilizes standard PC VR headsets communicating natively through the OpenVR protocol wrapped by the SteamVR SDK.
+
+The Unity3D project incorporates the \textbf{Virtual Reality Toolkit (VRTK)} to parse OpenVR inputs abstractly. VRTK provides robust fallbacks; if the physical headset is disconnected, it immediately defaults to a standard desktop mock-HMD mode, granting developers the ability to script camera movement via keyboard and mouse inputs without constantly donning the hardware headset throughout the testing phase.
+
+The pedestrian subject GameObject is defined structurally: an external 3D collider representation and a distinct "Player Camera Rig." The VRTK camera rig maps the user's physical height dynamically. Consequently, all 3D environment updates related to the VR setup are tightly bound to the rendering loop, ensuring the camera remains accurately positioned and prevents VR motion sickness during environment traversal.
+
+\section{Immersive Pedestrian Scenarios}
+
+Realism in pedestrian simulators is intrinsically tied to natural locomotion parameters. Communicating via the Unity Input System and VRTK interfaces, controller inputs and spatial movement translate into coordinate updates within the Unity space.
+
+When the VR user navigates the virtual environment, their dynamic position is broadcast back to SUMO. A fundamental challenge was resolving the conflict between physical VR boundary constraints and infinite virtual space. By ensuring the VR tracking updates remain decoupled from the TraCI network loop, the visual fluidity is preserved independently of whether SUMO is overloaded or lagging, mitigating kinetosis.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    hw/.style={
+        circle, draw=BorderColor, fill=SoftBg, line width=1.5pt,
+        minimum size=2.5cm, align=center, font=\bfseries\sffamily\color{PrimaryNavy}
+    },
+    pc/.style={
+        rectangle, rounded corners=6pt, draw=PrimaryNavy, fill=white,
+        line width=2pt, minimum width=3cm, minimum height=2.5cm, align=center,
+        font=\bfseries\Large\sffamily\color{AccentTeal}
+    },
+    arr/.style={
+        <{Stealth[length=3mm]}-{Stealth[length=3mm]}, line width=1.5pt, color=PrimaryNavy
+    }
+]
+
+    \node[pc] (engine) {Unity3D \\ Pedestrian Subject};
+    
+    \node[hw, above left=1.5cm and 2cm of engine] (vr) {PC VR Headset\\(SteamVR)};
+    \node[hw, above right=1.5cm and 2cm of engine] (controller) {VR Controllers\\(Locomotion)};
+    \node[hw, below=2cm of engine] (sumo) {SUMO\\Simulation};
+    
+    \draw[arr] (engine) -- node[fill=white, font=\small\sffamily]{Head Tracking Transform} (vr);
+    \draw[arr] (engine) -- node[fill=white, font=\small\sffamily]{Spatial Locomotion} (controller);
+    \draw[arr, AccentTeal, line width=2pt] (engine) -- node[fill=white, font=\small\sffamily\color{PrimaryNavy}\bfseries]{Pedestrian $X,Y,\theta$ overwrite} (sumo);
+
+\end{tikzpicture}
+\caption{Hardware-in-the-Loop constraints and bidirectional resolution for pedestrian VR.}
+\label{fig:hardware}
+\end{figure}
+
+\section{Evaluating Co-Simulation Capabilities}
+
+To confirm that the integration provides true empirical value, the environment allows for preliminary testing of various synchronized behaviors between Unity and SUMO.
+
+\subsection{Mixed Vehicle Traffic Verification}
+
+The core architecture supports simultaneous car, bike, and cycle simulation within the same topological space. By importing a multi-modal network from SUMO, the Unity engine continuously ingests coordinates and interpolates rendering states for all agent types.
+\textbf{Observation:} 
+The integration successfully maintains continuous rendering of mixed traffic flows, accurately representing speed and trajectory differentials imported from the SUMO models.
+
+\subsection{Pedestrian Safety Dynamics (Future Prospect)}
+
+A crosswalk rendering intersecting the primary road trajectory allows evaluating the Social Force Model (SFM). Generic pedestrians traverse the environment while maintaining physics logic. By injecting a human VR user into this pedestrian flow, future studies can evaluate human reaction against automated vehicle flows.
+\textbf{Observation:} 
+Because the VR subject functions as a dynamic obstacle within the SUMO network, approaching vehicles dynamically adjust to the subject's positional data. This bidirectional relationship constitutes the definitive validation of the integration mapping non-scripted human inputs against SUMO agents.

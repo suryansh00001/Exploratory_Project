@@ -1,0 +1,50 @@
+% ============================================================
+%          CHAPTER 3: SIMULATION ENVIRONMENT SETUP
+% ============================================================
+\chapter{Simulation Environment Setup}
+
+\section{Overview of Foundational Platforms}
+
+The development of the driving simulator mandates an intricate orchestration of primary software components. This chapter explicitly delineates the setup logic for SUMO and Unity3D.
+
+\subsection{SUMO Architecture and CLI Execution}
+
+SUMO constitutes a suite of distinct command-line topology generation tools that culminate in the central simulation execution engine. The environment utilizes SUMO version 1.18.0. Standard traffic models rely on randomized heuristic generation, but for driving simulator scenarios, extreme deterministic precision is required. SUMO is executed entirely headlessly (without the \texttt{sumo-gui} front end) to preserve system memory and CPU throughput for Unity’s Universal Render Pipeline.
+
+The initial baseline configuration file utilized is the \texttt{.sumocfg} wrapper, which explicitly defines the time-step resolution. For standard macroscopic aggregation, a 1-second interval is sufficient, but real-time human-in-the-loop synchronization absolutely requires sub-100 millisecond evaluation. Therefore, the simulation step-length is aggressively clamped to $0.02$ seconds (20ms step time, resulting in a 50Hz native SUMO evaluation rate).
+
+To execute the headless environment, a specialized Python runner binds to the `os.environ["SUMO_HOME"]` path and appends the `tools` directory to `$PYTHONPATH`. The command parsed via the OS interface is:
+\begin{lstlisting}
+sumo -c config.sumocfg --step-length 0.02 --remote-port 5555 --start
+\end{lstlisting}
+
+\subsection{Unity3D and the Universal Render Pipeline}
+
+The visual front-end relies on Unity3D (version 2022.3 LTS). The architecture was strictly constructed atop the Universal Render Pipeline (URP). URP allows custom shader graphs and vastly reduces the per-pixel lighting calculations compared to the High Definition Render Pipeline (HDRP). If HDRP's raytracing compute shaders were utilized, sustaining robust, stutter-free performance on mid-tier hardware (e.g., NVIDIA RTX 3060) alongside heavy mathematical operations would be physically impossible.
+
+The environment layout was cleared entirely of native Unity objects, leaving only an asynchronous \texttt{SimulationManager} GameObject. This monolithic controller holds references to the \texttt{RoadNetworkBuilder} script, instantiating the road meshes only after the \texttt{.net.xml} topology file has been completely decompiled.
+
+\section{Road Network Subsystem Creation}
+
+Traffic simulation scenarios require a base topology capable of supporting complex intersections. Instead of manually sculpting roads in Maya or Blender (which typically results in scaling mismatches against trajectory data), a systematic parsing approach is employed. 
+
+\subsection{Parsing the .net.xml Syntax}
+
+The core SUMO network format consists of hundreds of nested XML nodes dictating coordinate \texttt{edges}, \texttt{lanes}, \texttt{junctions}, and \texttt{connections}. A critical step involves executing a Cartesian transformation. SUMO outputs coordinates using a specific internal offset (e.g., \texttt{netOffset="155.6, 210.4"}). Since Unity utilizes a left-handed coordinate system where $Y$ is vertical, and SUMO utilizes a standard 2D Cartesian plane where $Z$ is vertical/layered, the coordinates must be rotated algorithmically.
+
+The algorithm dynamically scrapes all \texttt{<edge>} elements possessing the `function="internal"` flag directly resulting in the extrusion of spline curves along the centerlines. The width is derived from the \texttt{width="3.2"} attribute per lane. To minimize draw calls in Unity, vertex lists representing straight road segments are consolidated into massive combined mesh structures, preventing the Unity engine from processing thousands of tiny quadrilateral polygons.
+
+\subsection{Junction Polygon Tessellation}
+
+The most computationally expensive setup phase is the conversion of complex junctions. SUMO outputs a boundary loop—a sequence of 2D coordinate points defining the outer circumference of a traffic intersection. To render a solid floor for the intersection, these points must be triangulated. An ear-clipping algorithm (e.g., the Earcut library) interprets the XML shape strings, slices the polygon into triangles, and maps the vertex UVs to an asphalt PBR material. 
+
+\section{Generating Granular Background Traffic}
+
+To test the ego-vehicle properly, organic traffic congestion must be induced. The `duarouter` tool was completely superseded by manual hardcoding of specific vehicle flows directly inside the \texttt{.rou.xml} document.
+
+\begin{lstlisting}
+<vType id="passenger_car" accel="2.6" decel="4.5" sigma="0.5" length="4.5" maxSpeed="20.0" carFollowModel="Krauss"/>
+<flow id="main_arterial" type="passenger_car" begin="0" end="3600" vehsPerHour="1200" from="edge_A" to="edge_D"/>
+\end{lstlisting}
+
+This flow definition mandates that 1,200 vehicles per hour spawn on Edge A, generating localized saturation near the central junction. The \texttt{sigma="0.5"} parameter is mathematically crucial. By setting driver imperfection (sigma) to 0.5, vehicles do not accelerate identically. This variance induces organic shockwaves (stop-and-go waves), providing a deeply realistic challenge for the human test subject navigating the Ego Vehicle.

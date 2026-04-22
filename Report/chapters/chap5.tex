@@ -1,0 +1,105 @@
+% ============================================================
+%        CHAPTER 5: SYSTEM DEVELOPMENT & INTEGRATION
+% ============================================================
+\chapter{System Development \& Integration}
+
+\section{Core Unity Scripts Architecture}
+
+The Unity hierarchy is fundamentally driven by a triad of heavily optimized C\# mono-behaviors. These scripts explicitly avoid utilizing Unity's notorious `Update()` loop for logic generation in order to strictly decouple network polling from rendering frames. 
+
+\subsection{ExchangeData.cs: The Asynchronous Conduit}
+
+At the lowest level, \texttt{ExchangeData.cs} encompasses the NetMQ polling thread. When the Unity application starts, standard MonoBehaviours initialize on the Main Thread. \texttt{ExchangeData.cs} utilizes \texttt{Task.Run()} in the \texttt{Start()} function to execute a permanent `while(isRunning)` loop bound to a secondary CPU core. 
+
+Within this thread, a NetMQ \texttt{RequestSocket} is bound to \texttt{tcp://127.0.0.1:5555}. 
+
+If JSON is received from SUMO, it cannot be directly instantiated as Unity GameObjects because Unity's API is strictly thread-safe and universally panics if a background thread attempts to call \texttt{Instantiate()}. Therefore, \texttt{ExchangeData.cs} utilizes a `ConcurrentQueue<Action>`. Upon receiving coordinates, it queues up lambda functions. During the Main Thread's `FixedUpdate()`, it rapidly dequeues and executes these generic Actions, safely injecting the coordinates into the Unity timeline.
+
+\subsection{SimulationController.cs: The Orchestrator}
+
+The \texttt{SimulationController.cs} is a monolithic script executing on the primary thread. Its primary role is translating abstract JSON strings into physical agents. Upon receiving a dataset containing `{ "id": "veh_42", "x": 105.2, "y": 42.1, "angle": 90.0 }`, the controller executes a dictionary lookup against an internal `Dictionary<string, GameObject> activeVehicles`.
+
+If the ID does not exist, the controller utilizes an Object Pool to fetch a dormant 3D car mesh (drastically lowering memory allocation overhead compared to raw instantiation). It assigns the base material colors, configures the physics RigidBody to kinematic mode, and injects the car into the scene. If the ID is absent from the most recent SUMO telemetry packet, the car is interpreted as having exited the simulation bounds, and the `SimulationController` returns the asset to the Object Pool.
+
+\subsection{VehicleController.cs: The Interpolation Core}
+
+A severe visual incongruency arises when attempting to render a 20ms or 50ms mathematical update into natively generated 110 FPS visual frames. If the coordinates are mapped explicitly without modification, the vehicles appear to "teleport" or "stutter" rapidly across the screen, utterly destroying immersion.
+
+The \texttt{VehicleController.cs} is assigned to every individual agent. When new data arrives, it does not apply it directly to `transform.position`. Instead, it stores the coordinate in a `targetPosition` field. Inside the script’s `Update()` loop, which fires exactly aligned with the monitor’s refresh rate, it executes:
+\begin{lstlisting}
+transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * lerpSpeed);
+transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotSpeed);
+\end{lstlisting}
+
+This spherical interpolation algorithm creates buttery-smooth, sub-millimeter accurate traversal across frames, hiding the underlying 20ms simulation grid entirely from the human observer.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    process/.style={
+        rectangle, rounded corners=3pt, draw=PrimaryNavy, fill=white,
+        line width=1pt, minimum width=4cm, minimum height=1cm, align=center,
+        font=\small\sffamily
+    },
+    thread/.style={
+        rectangle, rounded corners=6pt, draw=AccentTeal, fill=AccentTeal!5, line width=1pt, dashed,
+        inner sep=10pt, align=center, font=\bfseries\sffamily\color{PrimaryNavy}
+    },
+    arrow/.style={
+        -Stealth, line width=1.2pt, color=PrimaryNavy
+    }
+]
+
+    % Threads boundaries
+    \node[thread, minimum width=5cm, minimum height=6.5cm] (bgthread) at (0,0) {};
+    \node[anchor=north, yshift=-5pt] at (bgthread.north) {Background Thread};
+    
+    \node[thread, minimum width=5cm, minimum height=6.5cm, right=1.5cm of bgthread] (mainthread) {};
+    \node[anchor=north, yshift=-5pt] at (mainthread.north) {Unity Main Thread};
+
+    % Nodes
+    \node[process, below=0.6cm of bgthread.north] (n1) {NetMQ Socket Poll};
+    \node[process, below=0.6cm of n1] (n2) {Receive JSON String};
+    \node[process, below=0.6cm of n2] (n3) {Deserialize format};
+    \node[process, below=0.6cm of n3] (n4) {Enqueue Lambda};
+    
+    \node[process, below=0.6cm of mainthread.north] (m1) {Unity FixedUpdate()};
+    \node[process, below=0.6cm of m1] (m2) {Dequeue Action};
+    \node[process, below=0.6cm of m2] (m3) {Update targetPos};
+    \node[process, below=0.6cm of m3] (m4) {Vector3.Lerp()};
+
+    % Links
+    \draw[arrow] (n1) -- (n2);
+    \draw[arrow] (n2) -- (n3);
+    \draw[arrow] (n3) -- (n4);
+    
+    \draw[arrow] (m1) -- (m2);
+    \draw[arrow] (m2) -- (m3);
+    \draw[arrow] (m3) -- (m4);
+    
+    \draw[arrow, color=AccentTeal, thick, dashed] (n4) -- node[above, font=\scriptsize\sffamily, color=DarkText]{Concurrent Queue} (m2);
+
+\end{tikzpicture}
+\caption{The thread-safe asynchronous polling loop separating the ZMQ network calls from the Unity rendering pipeline.}
+\label{fig:threading}
+\end{figure}
+
+\section{Ego Vehicle Physics Decoupling}
+
+While the background traffic operates strictly via Lerp/Slerp interpolation on set coordinates, the Ego Vehicle (the physical entity representing the human user) must operate in exactly the inverse manner. 
+
+If the Ego Vehicle was locked into interpolation, the user’s steering wheel commands would feel delayed ("input lag"). Therefore, the \texttt{EgoController.cs} operates purely using Unity's \texttt{Rigidbody.AddForce()} and \texttt{AddTorque()} physics logic. 
+
+As the ego vehicle navigates organically, collisions with background vehicles must be registered. Since background vehicles lack true physics colliders (to save performance), the \texttt{SimulationController} algorithmically activates BoxColliders specifically on background vehicles within a 20-meter radius of the ego car. This dynamically generated physical "bubble" ensures that if the ego driver crashes, the rigidbodies interact organically, preventing the ego car from clipping through objects.
+
+\section{Console Logging and Diagnostics}
+
+To guarantee integration stability, the environment continually logs to a diagnostic console and writes CSV data streams. 
+
+\begin{itemize}[label={\color{AccentTeal}$\blacktriangleright$}, leftmargin=2em, itemsep=4pt]
+    \item \textbf{Timing Logs:} \texttt{runner.py} logs exactly how many milliseconds the TraCI bridge utilizes per cycle. If TraCI blocks for $>10ms$, a console warning is emitted indicating network saturation.
+    \item \textbf{Network Latency:} NetMQ sends a nanosecond-precise timestamp in the JSON header. Unity compares it against \texttt{Stopwatch.GetTimestamp()} to determine the absolute transit latency over the loopback interface.
+    \item \textbf{Rendering Stability Heuristics:} If the frame rate dips below 80 FPS, the console outputs a \texttt{[SEVERE]} tag. This is a critical metric during the initial deployment of complex meshes or high-density traffic models.
+\end{itemize}
+
+By relying heavily on structured logging natively ported into the Unity Console, researchers can execute scenario post-mortems accurately, distinguishing between a script hang and legitimate network saturation.

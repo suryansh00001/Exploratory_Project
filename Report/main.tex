@@ -1,0 +1,489 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+% ===================== CORE PACKAGES =====================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[top=1in, bottom=1in, left=1.25in, right=1in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{tcolorbox}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{etoolbox}
+\usepackage{microtype}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{pdfpages}
+\usepackage{needspace}
+
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, fit, calc, shadows.blur, decorations.markings, backgrounds}
+\tcbuselibrary{skins, breakable}
+
+% ===================== PREMIUM COLOR PALETTE =====================
+% Deep navy + teal accent — inspired by McKinsey/Deloitte report themes
+\definecolor{PrimaryNavy}{HTML}{1B2A4A}       % Deep navy blue
+\definecolor{AccentTeal}{HTML}{0891B2}         % Vibrant teal
+\definecolor{AccentGold}{HTML}{D4A843}         % Warm gold accent
+\definecolor{LightSlate}{HTML}{64748B}         % Muted slate for body text
+\definecolor{SoftBg}{HTML}{F8FAFC}             % Very light background
+\definecolor{CardBg}{HTML}{F1F5F9}             % Card/box background
+\definecolor{DarkText}{HTML}{1E293B}           % Near-black for body
+\definecolor{BorderColor}{HTML}{CBD5E1}        % Subtle borders
+\definecolor{SuccessGreen}{HTML}{059669}       % Success/positive
+\definecolor{WarningAmber}{HTML}{D97706}       % Warning/caution
+\definecolor{CodeBg}{HTML}{1E293B}             % Dark code background
+\definecolor{CodeText}{HTML}{E2E8F0}           % Light code text
+\definecolor{ChapterRule}{HTML}{0891B2}        % Chapter underline
+
+% ===================== FONTS =====================
+% Using helvet package (defined above) for pdfLaTeX compatibility
+
+% ===================== SPACING =====================
+\onehalfspacing
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0em}
+
+% ===================== HEADER / FOOTER =====================
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{%
+    \color{LightSlate}\small\sffamily
+    \rule[2ex]{0.3\textwidth}{0.4pt}\quad
+    {\color{PrimaryNavy}\bfseries\thepage}%
+    \quad\rule[2ex]{0.3\textwidth}{0.4pt}%
+}
+
+% Plain page style for chapter starts
+\fancypagestyle{plain}{%
+    \fancyhf{}
+    \renewcommand{\headrulewidth}{0pt}
+    \fancyfoot[C]{%
+        \color{LightSlate}\small\sffamily
+        \rule[2ex]{0.3\textwidth}{0.4pt}\quad
+        {\color{PrimaryNavy}\bfseries\thepage}%
+        \quad\rule[2ex]{0.3\textwidth}{0.4pt}%
+    }
+}
+
+% ===================== CHAPTER TITLE STYLING =====================
+\titleformat{\chapter}[display]
+    {\normalfont\sffamily\raggedleft}
+    {\fontsize{14}{16}\selectfont\bfseries\color{AccentTeal} \MakeUppercase{Chapter \thechapter}}
+    {0pt}
+    {\fontsize{32}{38}\selectfont\bfseries\color{PrimaryNavy}}
+    [\vspace{2ex}{\color{AccentTeal}\titlerule[2pt]}]
+\titleformat{name=\chapter,numberless}[display]
+    {\normalfont\sffamily\raggedleft}
+    {}
+    {0pt}
+    {\fontsize{32}{38}\selectfont\bfseries\color{PrimaryNavy}}
+    [\vspace{2ex}{\color{AccentTeal}\titlerule[2pt]}]
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+
+% ===================== SECTION STYLING =====================
+\titleformat{\section}
+    {\needspace{4\baselineskip}\normalfont\sffamily\Large\bfseries\color{PrimaryNavy}}
+    {\color{AccentTeal}\thesection\hspace{0.6em}}
+    {0em}
+    {}
+    [\vspace{0.8ex}{\color{BorderColor}\titlerule[1pt]}]
+
+\titleformat{\subsection}
+    {\needspace{2\baselineskip}\normalfont\sffamily\large\bfseries\color{PrimaryNavy}}
+    {\color{AccentTeal}\thesubsection\hspace{0.5em}{\color{BorderColor}|}\hspace{0.5em}}
+    {0em}
+    {}
+
+\titleformat{\subsubsection}
+    {\needspace{2\baselineskip}\normalfont\sffamily\normalsize\bfseries\color{PrimaryNavy}}
+    {\color{AccentTeal}\thesubsubsection\hspace{0.5em}}
+    {0em}
+    {}
+
+% ===================== HYPERLINKS =====================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=PrimaryNavy,
+    citecolor=AccentTeal,
+    urlcolor=AccentTeal,
+    bookmarksnumbered=true,
+    pdfauthor={Suryansh Garg},
+    pdftitle={Integration of SUMO and Unity for Driving Simulator Scenario Design},
+}
+
+% ===================== CODE LISTING STYLE =====================
+\lstdefinestyle{premium}{
+    basicstyle=\ttfamily\small\color{CodeText},
+    backgroundcolor=\color{CodeBg},
+    frame=none,
+    numbers=none,
+    breaklines=true,
+    tabsize=4,
+    showstringspaces=false,
+    xleftmargin=12pt,
+    xrightmargin=12pt,
+    aboveskip=8pt,
+    belowskip=8pt,
+    framesep=8pt,
+}
+\lstset{style=premium}
+
+% ===================== TCOLORBOX STYLES =====================
+% Key insight / highlight box
+\newtcolorbox{insightbox}[1][]{%
+    enhanced,
+    colback=white,
+    colframe=AccentTeal,
+    coltitle=PrimaryNavy,
+    colbacktitle=white,
+    fonttitle=\sffamily\bfseries,
+    title={#1},
+    arc=0pt,
+    boxrule=0pt,
+    leftrule=3pt,
+    left=10pt, right=10pt, top=6pt, bottom=6pt,
+    borderline west={3pt}{0pt}{AccentTeal},
+    breakable,
+}
+
+% Info / note box
+\newtcolorbox{infobox}[1][]{%
+    enhanced,
+    colback=white,
+    colframe=PrimaryNavy,
+    fontupper=\small,
+    arc=0pt,
+    boxrule=0pt,
+    leftrule=3pt,
+    left=10pt, right=10pt, top=6pt, bottom=6pt,
+    borderline west={3pt}{0pt}{PrimaryNavy},
+    breakable,
+}
+
+% Table header color command
+\newcommand{\thead}[1]{\textbf{\color{PrimaryNavy}#1}}
+
+% Caption styling
+\captionsetup{
+    font={small, sf},
+    labelfont={bf, color=PrimaryNavy},
+    skip=8pt,
+    format=hang,
+}
+
+% TOC styling
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+\renewcommand{\cfttoctitlefont}{\sffamily\Huge\bfseries\color{PrimaryNavy}}
+\renewcommand{\cftlottitlefont}{\sffamily\Huge\bfseries\color{PrimaryNavy}}
+\renewcommand{\cftchapfont}{\sffamily\bfseries\color{PrimaryNavy}}
+\renewcommand{\cftsecfont}{\sffamily\color{DarkText}}
+\renewcommand{\cftsubsecfont}{\sffamily\small\color{LightSlate}}
+\renewcommand{\cftchapleader}{\color{BorderColor}\cftdotfill{\cftdotsep}}
+\renewcommand{\cftsecleader}{\color{BorderColor}\cftdotfill{\cftdotsep}}
+\renewcommand{\cftchappagefont}{\sffamily\bfseries\color{AccentTeal}}
+\renewcommand{\cftsecpagefont}{\sffamily\color{AccentTeal}}
+
+% ===================== DOCUMENT =====================
+\begin{document}
+\sffamily % Sans-serif throughout for modern look
+
+% ============================================================
+%                       TITLE PAGE
+% ============================================================
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+    % Top banner
+    \fill[PrimaryNavy] (current page.north west) rectangle ([yshift=-2cm]current page.north east);
+    \fill[AccentTeal] ([yshift=-2cm]current page.north west) rectangle ([yshift=-2.2cm]current page.north east);
+    
+    % Bottom banner
+    \fill[PrimaryNavy] (current page.south west) rectangle ([yshift=2cm]current page.south east);
+    \fill[AccentTeal] ([yshift=2cm]current page.south west) rectangle ([yshift=2.2cm]current page.south east);
+    
+    % Date inside bottom banner
+    \node[anchor=south] at ([yshift=0.8cm]current page.south) {\color{white}\fontsize{14}{16}\selectfont\sffamily\bfseries April, 2026};
+\end{tikzpicture}
+
+\vspace*{0.5cm}
+\begin{center}
+    {\color{LightSlate}\fontsize{12}{14}\selectfont\sffamily\bfseries\MakeUppercase{Exploratory Project Report}}\\[1.2cm]
+    
+    {\color{PrimaryNavy}\fontsize{34}{40}\selectfont\sffamily\bfseries Integration of SUMO and Unity}\\[0.6cm]
+    {\color{AccentTeal}\fontsize{18}{22}\selectfont\sffamily for Driving Simulator Scenario Design}\\[1.5cm]
+    
+    {\color{BorderColor}\rule{0.8\textwidth}{1pt}}\\[1.5cm]
+    
+    {\fontsize{14}{16}\selectfont\sffamily Submitted as an Exploratory Project Report for}\\[0.3cm]
+    {\color{PrimaryNavy}\fontsize{18}{22}\selectfont\sffamily\bfseries Bachelor of Technology (B.Tech.)}\\[1.5cm]
+    
+    \begin{minipage}[t]{0.45\textwidth}
+        \begin{flushleft}
+            {\fontsize{14}{16}\selectfont\sffamily\color{LightSlate} Prepared by}\\[0.4cm]
+            {\color{PrimaryNavy}\fontsize{18}{22}\selectfont\sffamily\bfseries Suryansh Garg}\\[0.1cm]
+            {\fontsize{12}{14}\selectfont\sffamily Roll No. 24064029}
+        \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \begin{flushright}
+            {\fontsize{14}{16}\selectfont\sffamily\color{LightSlate} Under the guidance of}\\[0.3cm]
+            {\color{PrimaryNavy}\fontsize{16}{20}\selectfont\sffamily\bfseries Dr.\ Anshuman Sharma}\\[0.1cm]
+            {\fontsize{14}{16}\selectfont\sffamily Assistant Professor}
+        \end{flushright}
+    \end{minipage}
+    
+    \vfill 
+    
+    {\color{PrimaryNavy}\fontsize{14}{16}\selectfont\sffamily\bfseries Department of Civil Engineering}\\[0.2cm]
+    {\color{PrimaryNavy}\fontsize{16}{20}\selectfont\sffamily\bfseries INDIAN INSTITUTE OF TECHNOLOGY}\\[0.1cm]
+    {\color{PrimaryNavy}\fontsize{16}{20}\selectfont\sffamily\bfseries (BANARAS HINDU UNIVERSITY)}\\[0.2cm]
+    {\fontsize{14}{16}\selectfont\sffamily VARANASI -- 221\,005}\\[0.5cm]
+\end{center}
+\end{titlepage}
+
+% ============================================================
+%                   THESIS CERTIFICATE
+% ============================================================
+\newpage
+\thispagestyle{empty}
+
+\begin{center}
+    {\color{PrimaryNavy}\fontsize{20}{24}\selectfont\bfseries THESIS CERTIFICATE}\\[4pt]
+    {\color{AccentTeal}\rule{4cm}{2pt}}
+\end{center}
+\vspace{0.8cm}
+
+This is to certify that the thesis titled \textbf{\color{PrimaryNavy}``Integration of SUMO and Unity for Driving Simulator Scenario Design''}, submitted by \textbf{Suryansh Garg} (Roll No.\ 24064029), to the Indian Institute of Technology (Banaras Hindu University), Varanasi, as an Exploratory Project Report for \textbf{Bachelor of Technology (B.Tech.)}, is a bona fide record of work done by him under my supervision.
+
+It is certified that the statement made by the student in his declaration is correct to the best of my knowledge.
+
+\vspace{2cm}
+
+\noindent Date of Submission: \textcolor{BorderColor}{\hrulefill}
+
+\vspace{3cm}
+
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+{\color{PrimaryNavy}\rule{5cm}{0.8pt}}\\[6pt]
+\textbf{Dr.\ Anshuman Sharma}\\
+{\color{LightSlate}\small Assistant Professor\\
+Department of Civil Engineering\\
+IIT (BHU), Varanasi -- 221\,005}
+\end{minipage}
+
+% ============================================================
+%                      DECLARATION
+% ============================================================
+\newpage
+\thispagestyle{empty}
+
+\begin{center}
+    {\color{PrimaryNavy}\fontsize{20}{24}\selectfont\bfseries DECLARATION}\\[4pt]
+    {\color{AccentTeal}\rule{3cm}{2pt}}
+\end{center}
+\vspace{0.8cm}
+
+I, \textbf{Suryansh Garg}, certify that the work embodied in this thesis is my own bona fide work carried out by me under the supervision of \textbf{Dr.\ Anshuman Sharma}, from January 2026 to April 2026 at the Department of Civil Engineering, Indian Institute of Technology (BHU), Varanasi.
+
+The matter embodied in this thesis has not been submitted for any other degree/diploma. I declare that I have faithfully acknowledged and/or cited the researchers wherever their works have been utilized in this thesis. I further declare that I have not willfully copied any other's work, paragraphs, text, data, results, etc., reported in journals, books, magazines, reports, dissertations, theses, etc., or available at websites.
+
+\vspace{1.5cm}
+
+\noindent Date: \textcolor{BorderColor}{\hrulefill} \\[0.5cm]
+\noindent Place: Varanasi
+
+\vspace{3cm}
+
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+{\color{PrimaryNavy}\rule{5cm}{0.8pt}}\\[6pt]
+Signature\\
+\textbf{(Suryansh Garg)}
+\end{minipage}
+
+% ============================================================
+%                    ACKNOWLEDGEMENT
+% ============================================================
+\newpage
+\thispagestyle{empty}
+
+\begin{center}
+    {\color{PrimaryNavy}\fontsize{20}{24}\selectfont\bfseries ACKNOWLEDGEMENT}\\[4pt]
+    {\color{AccentTeal}\rule{4cm}{2pt}}
+\end{center}
+\vspace{0.8cm}
+
+I would like to express my sincere gratitude to my supervisor, \textbf{Dr.\ Anshuman Sharma}, Assistant Professor, Department of Civil Engineering, IIT (BHU) Varanasi, for his invaluable guidance, constant encouragement, and support throughout this exploratory project. His insights into traffic safety research and simulation methodology were instrumental in shaping this work.
+
+I am also thankful to the original developers of the SUMO2Unity framework---particularly Mohammadi et al.\ at the University of Manitoba---for making their work publicly available under an open-source license, which served as the foundation for this study. I extend my appreciation to the developers of SUMO (Simulation of Urban MObility) at the German Aerospace Center (DLR) and to Unity Technologies for providing robust platforms that enabled this research.
+
+I would also like to thank the Head of the Department of Civil Engineering and all faculty members for providing the necessary infrastructure and academic environment conducive to research. I am grateful to the staff at the Computer Center, IIT (BHU), for providing the computational resources required for running the simulation experiments.
+
+Finally, I express my heartfelt gratitude to my family and friends for their unwavering support, and to my peers in the Department of Civil Engineering for their constructive feedback and encouragement throughout this project.
+
+\vspace{2cm}
+
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\centering
+\textbf{Suryansh Garg}\\
+{\color{LightSlate}\small Roll No.\ 24064029}
+\end{minipage}
+
+% ============================================================
+%                        ABSTRACT
+% ============================================================
+\newpage
+\thispagestyle{empty}
+
+\begin{center}
+    {\color{PrimaryNavy}\fontsize{20}{24}\selectfont\bfseries ABSTRACT}\\[4pt]
+    {\color{AccentTeal}\rule{3cm}{2pt}}
+\end{center}
+\vspace{0.8cm}
+
+The development of highly realistic simulators is essential for rigorous traffic safety research, advanced driver assistance system (ADAS) testing, and autonomous vehicle validation. While traditional microscopic traffic simulators like SUMO (Simulation of Urban MObility) excel at modeling complex, large-scale traffic networks and agent behaviors, they lack the high-fidelity 3D visualization and real-time physical interaction required for human-in-the-loop experiments. Conversely, game engines like Unity3D provide state-of-the-art rendering capabilities but do not natively simulate validated traffic dynamics.
+
+This exploratory project addresses this gap by investigating the \textbf{Integration of SUMO and Unity for Simulator Scenario Design}. We present a systematic methodology for coupling these two powerful platforms using TraCI (Traffic Control Interface) and ZeroMQ (ZMQ/NetMQ) messaging protocols. The integration framework enables bidirectional, real-time data exchange, allowing SUMO to dictate background traffic behavior while Unity orchestrates the 3D environment, user interaction, and real-time 3D rendering. 
+
+The study encompasses the environment setup, road network reconstruction in Unity, implementation of the communication layer, and preliminary testing of mixed-traffic co-simulation. Results demonstrate that the integrated simulator maintains stable synchronization and achieves rendering performance suitable for immersive desktop and future headset experiences. The project underscores the applicability of SUMO-Unity co-simulation as a robust, cost-effective tool for behavioral research and scenario-based safety assessment.
+
+\vspace{0.8cm}
+\begin{infobox}
+\textbf{\color{PrimaryNavy}Keywords:} Driving simulator $\bullet$ Traffic co-simulation $\bullet$ SUMO $\bullet$ Unity3D $\bullet$ Scenario design $\bullet$ Virtual reality $\bullet$ Road safety
+\end{infobox}
+
+% ============================================================
+%                   TABLE OF CONTENTS
+% ============================================================
+\newpage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\tableofcontents
+
+\newpage
+\listoftables
+
+% ============================================================
+%                      MAIN CONTENT
+% ============================================================
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ============================================================
+%                      MAIN CONTENT INCLUDES
+% ============================================================
+\input{chapters/chap1}
+\input{chapters/chap2}
+\input{chapters/chap3}
+\input{chapters/chap4}
+\input{chapters/chap5}
+\input{chapters/chap6}
+\input{chapters/chap7}
+\input{chapters/chap8}
+\input{chapters/chap9}
+
+% ============================================================
+%                      REFERENCES
+% ============================================================
+\newpage
+\addcontentsline{toc}{chapter}{References}
+
+% Set the bibliography name to References before generating
+\renewcommand{\bibname}{References}
+\begin{thebibliography}{99}
+\setlength{\itemsep}{6pt}
+
+\bibitem{mohammadi2024}
+Mohammadi, A., Park, P.~Y., Nourinejad, M., Cherakkatil, M.~S.~B., and Park, H.~S. (2024).
+SUMO2Unity: An Open-Source Traffic Co-Simulation Tool to Improve Road Safety.
+\textit{IEEE Intelligent Vehicles Symposium (IV)}.
+
+\bibitem{mohammadi2025}
+Mohammadi, A., Cherakkatil, M.~S.~B., Park, P.~Y., Nourinejad, M., and Asgary, A. (2025).
+An Open-Source Virtual Reality Traffic Co-Simulation for Enhanced Traffic Safety Assessment.
+\textit{Applied Sciences}, 15(17), 9351.
+
+\bibitem{lopez2018}
+Lopez, P.~A., Behrisch, M., Bieker-Walz, L., et~al. (2018).
+Microscopic Traffic Simulation using SUMO.
+\textit{IEEE ITSC}, pp.~2575--2582.
+
+\bibitem{helbing1995}
+Helbing, D. and Moln\'{a}r, P. (1995).
+Social force model for pedestrian dynamics.
+\textit{Physical Review E}, 51(5), 4282--4286.
+
+\bibitem{dosovitskiy2017}
+Dosovitskiy, A., Ros, G., Codevilla, F., Lopez, A., and Koltun, V. (2017).
+CARLA: An open urban driving simulator.
+\textit{CoRL}, pp.~1--16.
+
+\bibitem{deb2017}
+Deb, S., Strawderman, L., et~al. (2017).
+Evaluating pedestrian behavior at crosswalks.
+\textit{Accident Analysis \& Prevention}, 106, 191--201.
+
+\bibitem{krajzewicz2012}
+Krajzewicz, D., Erdmann, J., Behrisch, M., and Bieker, L. (2012).
+Recent Development and Applications of SUMO.
+\textit{Int.\ J.\ Adv.\ Syst.\ Meas.}, 5(3\&4), 128--138.
+
+\bibitem{horni2016}
+Horni, A., Nagel, K., and Axhausen, K.~W. (Eds.) (2016).
+\textit{The Multi-Agent Transport Simulation MATSim}. Ubiquity Press.
+
+\bibitem{hintjens2013}
+Hintjens, P. (2013).
+\textit{ZeroMQ: Messaging for Many Applications}. O'Reilly Media.
+
+\bibitem{who2018}
+World Health Organization (2018).
+\textit{Global Status Report on Road Safety 2018}. WHO Press.
+
+\bibitem{horberry2006}
+Horberry, T., et~al. (2006).
+Driver distraction: Effects of concurrent in-vehicle tasks.
+\textit{Accident Analysis \& Prevention}, 38(1), 185--191.
+
+\bibitem{morth2023}
+Ministry of Road Transport \& Highways, Govt.\ of India (2023).
+\textit{Road Accidents in India -- 2023}. New Delhi.
+
+\bibitem{traci2024}
+SUMO Documentation. TraCI. \url{https://sumo.dlr.de/docs/TraCI.html}.
+
+\bibitem{unity2024}
+Unity Technologies. Unity Manual. \url{https://docs.unity3d.com/Manual/}.
+
+\bibitem{zmq2024}
+ZeroMQ Community. The ZeroMQ Guide. \url{https://zguide.zeromq.org/}.
+
+\bibitem{netmq2024}
+NetMQ Repository. \url{https://github.com/zeromq/netmq}.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,64 @@
+% ============================================================
+%              CHAPTER 2: LITERATURE REVIEW
+% ============================================================
+\chapter{Literature Review}
+
+\section{Evolution of Microscopic Traffic Simulation}
+
+The study of traffic flow has historically been divided into macroscopic, mesoscopic, and microscopic simulation models. While macroscopic models evaluate flow density using fluid dynamics principles, they lack the granularity to evaluate individual driver decisions. Consequently, microscopic traffic simulators have become the industry standard for modeling granular interactions, resolving vehicle paths down to centimeters, and modeling psychophysical driver behaviors. 
+
+Two distinct mathematical paradigms drive modern microscopic models. The \textbf{Krauss Model} and the \textbf{Intelligent Driver Model (IDM)} are car-following models designed to compute safe following distances based on the velocity of the lead vehicle, driver reaction time, and maximum deceleration parameters. The Social Force Model (SFM), conceptualized by Helbing and Moln\'{a}r (1995), models pedestrian actions based on attractive and repulsive physical forces.
+
+\textbf{SUMO (Simulation of Urban MObility):} Developed by the German Aerospace Center (DLR) in 2001, SUMO is universally recognized as the fastest, most scalable open-source microscopic simulation engine. The fundamental advantage of SUMO is its TraCI (Traffic Control Interface) API. TraCI permits external scripts via a raw TCP connection to read and modify the simulation state on a per-step basis. TraCI uses a request-response protocol governed by strict byte-level packet structures. Despite these advantages, SUMO’s native GUI is rendered using OpenGL and is strictly restricted to a 2D top-down orthogonal projection. This limitation unequivocally precludes SUMO from functioning natively as a driving simulator where high-fidelity depth perception, vehicle occlusion mapping, and human-in-the-loop line-of-sight studies are paramount.
+
+\textbf{VISSIM:} PTV VISSIM is a commercial-grade simulator operating on the Wiedemann psychophysical threshold models. Although VISSIM possesses limited native 3D visualization, the extreme licensing costs restrict academic freedom, and its closed-source nature makes deep bidirectional API manipulation extraordinarily complex.
+
+\begin{table}[htbp]
+\centering
+\caption{Comparative capabilities of leading microscopic traffic simulation and visualization platforms.}
+\label{tab:sim_compare}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{2.5cm} X >{\centering\arraybackslash}p{2.3cm} >{\raggedright\arraybackslash}p{2.2cm}}
+\rowcolor{PrimaryNavy}
+\thead{\color{white}Platform} & \thead{\color{white}Core Architecture \textbackslash~Design Focus} & \thead{\color{white}Real-Time 3D} & \thead{\color{white}License Type} \\
+\midrule
+\rowcolor{SoftBg} \textbf{SUMO} & Open-source mathematical traffic engine (Krauss, IDM, SFM). & \color{WarningAmber}\textbf{Limited (2D)} & Open \\
+\textbf{VISSIM} & Expensive commercial solver (Wiedemann thresholds). & \color{SuccessGreen}\textbf{Yes} & Commercial \\
+\rowcolor{SoftBg} \textbf{Unity3D} & High-performance rendering engine (URP/HDRP). & \color{SuccessGreen}\textbf{Native 3D} & Comm. \\
+\textbf{CARLA} & Autonomous sensor simulation built on Unreal Engine. & \color{SuccessGreen}\textbf{Yes} & Open \\
+\rowcolor{PrimaryNavy!10} \textbf{SUMO2Unity} & \textbf{Bidirectional integrated co-simulation architecture.} & \color{SuccessGreen}\textbf{Native 3D} & \textbf{Open} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Modern Game Engines in Academic Research}
+
+As physical rendering capabilities plateaued in academic frameworks, researchers pivoted toward adopting commercial video game engines to construct simulation environments. 
+
+\textbf{Unity3D:} Developed by Unity Technologies, Unity utilizes a component-based architecture and relies on NVIDIA PhysX to process high-fidelity rigid-body dynamics. Unity’s primary academic advantages are its Universal Render Pipeline (URP), which significantly optimizes lighting calculations for lower-end hardware, and the extensive C\# execution runtime. Furthermore, Unity provides extensive support for complex inputs and visualization technologies, allowing instant integration of various displays and controllers. 
+
+\textbf{CARLA (Car Learning to Act):} Built on top of the Unreal Engine, CARLA has achieved significant popularity for validating autonomous driving algorithms. CARLA excels in generating synthetic sensor data (e.g., semantic segmentation, LiDAR point clouds). However, CARLA’s underlying macroscopic traffic generation logic is relatively weak compared to SUMO. Creating a city-scale simulation of 10,000 interacting vehicles within CARLA rapidly exhausts processing power due to the massive physics overhead of Unreal Engine.
+
+\section{The Quest for Co-Simulation Architectures}
+
+Recognizing that no single platform exists capable of satisfying both traffic modeling and visualization endpoints, academic focus shifted toward Co-Simulation architectures—specifically coupling SUMO with Unity3D or Unreal. 
+
+Initial attempts at co-simulation were fundamentally unidirectional. SUMO would pre-generate a simulation dump file (`fcd-export.xml`), which the 3D engine would trivially parse and animate posthumously. While this provided excellent visual renders for demonstrations, it wholly nullified the concept of a driving simulator. A driving simulator’s cardinal requirement is interactivity; if a human subject brakes the ego-vehicle aggressively, the surrounding traffic must algorithmically detect the hazard and execute emergency stopping maneuvers natively determined by SUMO.
+
+Bidirectional implementations via TraCI became necessary. In a strictly TraCI-governed environment, the Unity C\# script opens a TCP socket to the Python SUMO listener. At each physics frame in Unity (11ms), Unity pauses, requests the $X$, $Y$, and $\theta$ coordinates of all 500 active vehicles from SUMO, translates those coordinates into Quaternions and Vector3 data, updates the 3D meshes, and finally transmits the human player’s exact $X, Y, Z$ Cartesian parameters back to SUMO. SUMO then injects the human as an impenetrable polygon boundary, forces the internal timeline forward one step, computes the subsequent Krauss accelerations, and responses back to Unity.
+
+\section{Latency Constraints}
+
+The integration of real-time graphics drastically exacerbates co-simulation demands. In standard environments, latency spikes of 50-100ms resulting from TraCI bottlenecks are perceived as minor frame stuttering. However, a fluid visual output requires latency to be minimized. If the rendering engine drops below optimal frame rates, the disconnect between the driver's input and visual feedback compromises the simulation validity.
+
+A critical finding in recent literature identifies that polling TraCI synchronously directly inside the Unity \texttt{Update()} loop forces the Render Thread to block while waiting for TCP networking callbacks over the OS kernel. This inherently cripples Unity's frame rate. This specific limitation necessitates a profound shift in software architecture away from native TraCI TCP sockets and towards highly optimized, asynchronous networking buses. 
+
+\section{High-Performance Networking with ZeroMQ}
+
+ZeroMQ (ZMQ) is a widely utilized high-performance asynchronous messaging library designed to emulate traditional sockets while acting fundamentally as an intelligent message queue. Unlike base TCP, ZeroMQ automatically manages reconnecting, framing, and threading without exposing the lower-level socket primitives to the developer. The NetMQ library represents the native C\# adaptation of ZeroMQ. 
+
+By implementing NetMQ, researchers have begun executing PUB-SUB (Publish-Subscribe) and REQ-REP (Request-Reply) routines entirely on auxiliary hardware threads. This architecture completely decouples the heavy network traffic decoding loop from the fragile rendering engine, generating the foundational premise for a viable, high-performance driving simulator.
+
+\section{Identifying the Research Gap}
+
+Upon synthesizing the existing literature, a definitive technical void is identifiable: A stark lack of fully documented, deeply profiled, open-source co-simulation methodologies that not only parse SUMO to Unity via asynchronous ZMQ buses but also strictly evaluate the timing telemetry (FPS logs, trajectory tracking, synchronization drift) resulting from human-in-the-loop ego insertion. This exploratory project explicitly addresses this void. By systematically documenting the integration of SUMO and Unity, and proving the architectural viability of ZMQ bridging over raw TraCI sockets, this research asserts a critical scaffolding for future human factors engineering.

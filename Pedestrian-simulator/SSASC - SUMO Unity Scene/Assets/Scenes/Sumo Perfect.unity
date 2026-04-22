@@ -121,6 +121,12 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &8231854 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809388476434754, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &81198289
 GameObject:
   m_ObjectHideFlags: 0
@@ -987,6 +993,12 @@ MonoBehaviour:
   gripSenseAxisChanged: 0
   gripSensePressed: 0
   controllerVisible: 1
+--- !u!1 &259148612 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809389923478769, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &267780111
 GameObject:
   m_ObjectHideFlags: 0
@@ -1609,6 +1621,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4f35fa249b5008c44ac2998be6f82d4d, type: 3}
+--- !u!1 &491313294 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809390037232038, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &567364040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1815,6 +1833,12 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 589021472}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &605332952 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809389963277464, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &653720196
 GameObject:
   m_ObjectHideFlags: 0
@@ -2128,6 +2152,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6efb54bc8e9ded542be1998e2dc07324, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  egoSourceTransform: {fileID: 0}
+  preferMainCameraAsEgoSource: 1
+  applyInteractionToEgoExport: 1
+  pedestrianRepulsionRadius: 1.8
+  pedestrianRepulsionStrength: 1.3
+  carRepulsionRadius: 2
+  carRepulsionStrength: 1.5
+  subjectObjectName: subject
+  controlledPedestrianId: ego_ped
 --- !u!4 &946565128
 Transform:
   m_ObjectHideFlags: 0
@@ -2855,6 +2888,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bfa47b7a1e53bc4f990737824f800f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1279469837 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809389347302740, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1286901957
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4014,6 +4053,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: RC
   pedWalk: 1
+--- !u!1 &1671386740 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 116809389633615210, guid: 955961292ce89f1439a48d08974eb3df,
+    type: 3}
+  m_PrefabInstance: {fileID: 1975273365}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1676084120
 GameObject:
   m_ObjectHideFlags: 0
@@ -4675,12 +4720,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   autoPopulateObjectReferences: 1
-  actualBoundaries: {fileID: 0}
-  actualHeadset: {fileID: 0}
-  actualLeftController: {fileID: 0}
-  actualRightController: {fileID: 0}
-  modelAliasLeftController: {fileID: 0}
-  modelAliasRightController: {fileID: 0}
+  actualBoundaries: {fileID: 491313294}
+  actualHeadset: {fileID: 8231854}
+  actualLeftController: {fileID: 605332952}
+  actualRightController: {fileID: 1671386740}
+  modelAliasLeftController: {fileID: 259148612}
+  modelAliasRightController: {fileID: 1279469837}
   cachedSystemSDKInfo:
     baseTypeName: VRTK.SDK_BaseSystem
     fallbackTypeName: VRTK.SDK_FallbackSystem
